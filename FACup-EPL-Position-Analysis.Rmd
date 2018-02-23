@@ -1,0 +1,33 @@
+---
+title: "FACup-Analysis"
+author: "Stefan Gouyet"
+date: "February 20, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(readxl)
+library(dplyr)
+library(animation)
+library(gganimate)
+library(ggplot2)
+
+df<-read_excel("FA Cup Victory Impact on Next Season (1).xlsx")
+
+names(df)<-c("Year","Winners","Size","EPL_Position_Current","EPL_Position_Next","EPL_Position_Difference_Year1_Year2")
+
+df<-df %>% mutate(med=median(EPL_Position_Difference_Year1_Year2,na.rm=TRUE))
+df<-df %>% mutate(mean=mean(EPL_Position_Difference_Year1_Year2,na.rm=TRUE))
+
+p<-ggplot(data=df,aes(x=Year,y=`EPL_Position_Difference_Year1_Year2`,frame = Year,cumulative=TRUE))+geom_hline(aes(yintercept = mean),color="blue")+geom_hline(aes(yintercept=med),color="red")+geom_point()+labs(x="\nYear", y = "Difference in League Position (Year 1 - Year 2)",caption = "Source: The Football Association\nWikipedia") + ggtitle("Impact of Winning FA Cup on English League Position (1890-2016)")+scale_x_continuous(breaks = seq(1890, 2016, by = 10))+ theme(plot.title = element_text(hjust = 0.5))+  geom_text(data=subset(df, EPL_Position_Difference_Year1_Year2>10 | EPL_Position_Difference_Year1_Year2 < -10),nudge_y = 0.6, check_overlap = TRUE, size =2, aes(label=Winners))
+  
+ggplot(data=df,aes(x=factor(0),y=`EPL_Position_Difference_Year1_Year2`,frame = Year))+
+  geom_boxplot()+stat_summary(fun.y=mean,geom="point",color="red")+
+  geom_hline(aes(yintercept=mean),colour="blue")
+
+gganimate(p,"output2.gif")
+
+
+```
